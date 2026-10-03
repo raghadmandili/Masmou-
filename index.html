@@ -1,0 +1,147 @@
+<!doctype html>
+<html lang="ar" dir="rtl">
+<head>
+<meta charset="utf-8">
+<meta name="viewport" content="width=device-width,initial-scale=1">
+<title>مَسموع — لإشارتك صوت ولحفظك رفيق</title>
+<link href="https://fonts.googleapis.com/css2?family=Amiri+Quran&family=IBM+Plex+Sans+Arabic:wght@400;600&display=swap" rel="stylesheet">
+<link rel="icon" type="image/png" href="assets/favicon.png">
+<link rel="stylesheet" href="css/style.css">
+</head>
+<body>
+<section id="welcome" class="welcome" hidden aria-labelledby="wTitle">
+  <div class="wbox">
+    <img class="logo" src="assets/logo.png" alt="شعار مَسموع: يدان تؤديان إشارة فوق مصحف مفتوح">
+    <h2 id="wTitle">مَسموع</h2>
+    <p class="wtag">لإشارتك صوت ... ولحفظك رفيق</p>
+    <ol class="wsteps">
+      <li><span data-i="book"></span>اختر السورة والآية</li>
+      <li><span data-i="hand"></span>أدِّها بالإشارة أمام الكاميرا</li>
+      <li><span data-i="chart"></span>اعرف مستوى حفظك وما يحتاج مراجعة</li>
+    </ol>
+    <button id="wStart" class="primary"><span data-i="play"></span>ابدأ</button>
+  </div>
+</section>
+<header>
+  <h1><button id="home" class="brand" title="عن مَسموع"><img src="assets/logo-small.png" alt="" class="hlogo">مَسموع</button></h1><p>لإشارتك صوت ... ولحفظك رفيق</p>
+  <nav class="tabs" aria-label="الصفحات">
+    <button data-view="recite" aria-current="page">التسميع</button>
+    <button data-view="progress">تقدّمي</button>
+  </nav>
+</header>
+
+<main class="app" id="viewRecite">
+  <!-- 1. Choose what to recite -->
+  <section class="setup card" aria-label="اختيار التسميع">
+    <label class="lbl" for="surah">السورة</label>
+    <select id="surah"></select>
+
+    <span class="lbl" id="modeLbl">طريقة التسميع</span>
+    <div class="seg" role="radiogroup" aria-labelledby="modeLbl">
+      <button role="radio" data-mode="ayah" aria-checked="true">آية واحدة</button>
+      <button role="radio" data-mode="surah" aria-checked="false">السورة كاملة</button>
+      <button role="radio" data-mode="ref" aria-checked="false" class="team-only">تسجيل مرجع</button>
+    </div>
+
+    <div id="ayahField">
+      <span class="lbl" id="ayahLbl">الآية</span>
+      <div id="chips" class="chips" role="group" aria-labelledby="ayahLbl"></div>
+      <div id="pick" class="pick" hidden>
+        <button id="prevA" aria-label="الآية السابقة"><span data-i="chevR"></span></button>
+        <select id="ayahSel" aria-labelledby="ayahLbl"></select>
+        <button id="nextA" aria-label="الآية التالية"><span data-i="chevL"></span></button>
+      </div>
+    </div>
+  </section>
+
+  <!-- 2. Camera, ayah, result -->
+  <section class="stage card" aria-label="التسميع">
+    <div class="vw">
+      <video id="v" playsinline muted></video><canvas id="c"></canvas>
+      <div id="camOff" class="overlay"><span data-i="camera"></span><span id="camMsg">تعمل الكاميرا عند الضغط على «ابدأ التسميع»</span></div>
+      <canvas id="rp" width="640" height="480" hidden aria-label="عرض الإشارة الصحيحة"></canvas>
+      <div id="srcBox" class="srcbox" hidden>
+        <iframe id="srcFrame" title="فيديو المترجم لهذه الآية" allow="autoplay; encrypted-media; picture-in-picture" allowfullscreen referrerpolicy="strict-origin-when-cross-origin"></iframe>
+        <div class="srcbar"><span id="srcCap"></span><button id="srcClose"><span data-i="close"></span>إغلاق</button></div>
+      </div>
+      <div id="big" aria-live="assertive"></div>
+      <div id="rec" hidden><i></i> يسجّل الآن. أنزل يديك عندما تنتهي</div>
+    </div>
+
+    <p id="title" class="title"></p>
+    <p id="ayah" aria-live="polite"></p>
+
+    <div id="res" class="res" role="status" hidden></div>
+
+    <div id="actions" class="actions" hidden>
+      <button id="source" hidden><span data-i="video"></span>فيديو المترجم</button>
+      <button id="show"><span data-i="watch"></span>حركة اليدين</button>
+      <button id="listen"><span data-i="sound"></span>استمع</button>
+      <button id="again" hidden><span data-i="retry"></span>سمّعها مرة أخرى</button>
+    </div>
+    <p id="hint" class="hint" hidden>اضغط «ابدأ التسميع»، ثم أدِّ الآية بالإشارة أمام الكاميرا. وعندما تنتهي أنزل يديك.</p>
+    <button id="go" class="primary"><span data-i="play"></span><span id="goTxt">ابدأ التسميع</span></button>
+    <div id="lab" class="team-only test" hidden>للاختبار، الإشارة كانت: <button id="tY">صحيحة</button><button id="tN">خاطئة</button></div>
+
+    <div id="report" hidden></div>
+    <audio id="au" controls hidden></audio>
+
+    <p class="privacy"><span data-i="lock"></span>الفيديو لا يغادر جهازك ولا يُحفظ.</p>
+  </section>
+
+  <!-- 3. Help, history, team tools -->
+  <aside class="side">
+
+    <details class="card help" id="help">
+      <summary>كيف أستخدم مَسموع؟</summary>
+      <ol>
+        <li>اختر السورة، ثم آية واحدة أو السورة كاملة.</li>
+        <li>اضغط «ابدأ التسميع»، وأدِّ الآية بالإشارة أمام الكاميرا.</li>
+        <li>أنزل يديك عندما تنتهي. تظهر الكلمات الصحيحة بالأخضر، والكلمات التي تحتاج مراجعة بالأحمر.</li>
+      </ol>
+      <p class="mu">لأفضل نتيجة: مكان مضيء، ويظهر كتفاك ويداك كاملة في الكاميرا.</p>
+    </details>
+
+    <section class="card team-only" aria-label="أدوات الفريق">
+      <div class="team-head"><h2>أدوات الفريق</h2><button id="teamExit" class="link">خروج</button></div>
+      <p id="cnt" class="mu"></p>
+      <div class="actions">
+        <button id="mark">حدّد بدايات الكلمات</button>
+        <button id="markNext" hidden>بدأت الكلمة</button>
+        <button id="del">حذف آخر مرجع</button>
+      </div>
+      <h3>نتائج الاختبار</h3>
+      <p id="stats" class="mu"></p>
+      <p id="cmp" class="mu"></p>
+      <div class="ths">
+        <label>آية مطابقة أقل من <input id="t1" type="number" step=".01"></label>
+        <label>آية للمراجعة أقل من <input id="t2" type="number" step=".01"></label>
+        <label>كلمة صحيحة أقل من <input id="t3" type="number" step=".01"></label>
+      </div>
+      <div class="actions">
+        <button id="ex">تصدير البيانات</button>
+        <label class="file">استيراد <input id="im" type="file" accept=".json"></label>
+      </div>
+    </section>
+  </aside>
+</main>
+
+<main class="pview" id="viewProgress" hidden>
+  <section class="card">
+    <h2>تقدّمي</h2>
+    <p id="lead" class="mu lead">لكل سورة سمّعتها: ما أتقنته من آياتها وما يحتاج مراجعة. اضغط على السورة لترى التفاصيل.</p>
+    <div id="progress" class="progress"></div>
+  </section>
+  <section class="card" id="histCard">
+    <h2>آخر المحاولات</h2>
+    <ul id="hist" class="hist"></ul>
+  </section>
+</main>
+
+<footer>
+  النص القرآني من <a href="https://tanzil.net" target="_blank" rel="noopener">مشروع تنزيل (Tanzil.net)</a>، منقول دون تعديل.
+  التلاوة من <a href="https://everyayah.com" target="_blank" rel="noopener">everyayah.com</a>.
+</footer>
+<script type="module" src="js/main.js"></script>
+</body>
+</html>
